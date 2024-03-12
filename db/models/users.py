@@ -32,9 +32,21 @@ class Word(Model):
     id = Column(types.BigInteger, nullable=False, primary_key=True, comment="[PK]")
     word = Column(types.Text, nullable=False, comment="Слово для изучения")
     meaning = Column(types.Text, nullable=False, comment="Значение слова")
-    level = Column(types.Text, nullable=True, comment="Уровень сложности слова")
-    translate_ru = Column(types.Text, nullable=False, comment="Перевод слова на русский")
+    level = Column(types.VARCHAR(10), nullable=True, comment="Уровень сложности слова")
     ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
+
+
+class WordTranslation(Model):
+    __tablename__ = 'word_translations'
+    __table_args__ = {'comment': '[Entity] Переводы слов'}
+
+    id = Column(types.BigInteger, nullable=False, primary_key=True, comment="[PK]")
+    word_id = Column(types.BigInteger, ForeignKey('words.id'), nullable=False, comment="[FK]")
+    language = Column(types.Text, nullable=False, comment="Язык перевода")
+    translation = Column(types.Text, nullable=False, server_default="''::text", comment="Перевод слова")
+    ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
+
+    word = relationship('Word')
 
 
 class UserWord(Model):
@@ -61,8 +73,20 @@ class WordExamples(Model):
     id = Column(types.BigInteger, nullable=False, primary_key=True, comment="[PK]")
     word_id = Column(types.BigInteger, ForeignKey('words.id'), nullable=False, comment="[FK]")
     example_sentece = Column(types.Text, nullable=False, comment="Пример использования слова в предложении")
-    translate_ru = Column(types.Text, nullable=False, comment="Перевод предложeние на русский")
     ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
     utime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время обновления записи")
 
     word = relationship('Word', backref='word_examples')
+
+
+class WordExamplesTranslation(Model):
+    __tablename__ = 'word_example_translations'
+    __table_args__ = {'comment': '[Entity] Переводы примеров использования слов'}
+
+    id = Column(types.BigInteger, nullable=False, primary_key=True, comment="[PK]")
+    word_example_id = Column(types.BigInteger, ForeignKey('word_examples.id'), nullable=False, comment="[FK]")
+    language = Column(types.Text, nullable=False, comment="Язык перевода")
+    translation = Column(types.Text, nullable=False, server_default="''::text", comment="Перевод примера использования слова")
+    ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
+
+    word_example = relationship('WordExamples')

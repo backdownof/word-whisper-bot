@@ -5,14 +5,16 @@ from typing import List
 
 from db import models
 from views.constants.buttons import Button
+from views.constants.commands import Command as c
+from views.constants.messages import Message
 from views.helpers import messages as message_helpers
-from sqlalchemy.sql import text
 
 from aiogram import Bot, types, Router, F
 from aiogram.filters.command import Command
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
+from sqlalchemy.sql import text
 
 load_dotenv('.env')
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
@@ -20,7 +22,7 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN')
 router = Router()
 
 
-@router.message(Command("start"))
+@router.message(Command(c.START))
 async def start_handler(event: types.Message):
     user = models.User.get_by_tg_id(event.from_user.id)
     if not user:
@@ -39,6 +41,25 @@ async def start_handler(event: types.Message):
 
     # keyboard = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
+#     for location_name, location_info in near_locations.items():
+#         button = types.KeyboardButton(
+#             text='{near_location} ({time_to_travel} сек)'.format(
+#                 near_location=location_name,
+#                 time_to_travel=location_info['time_to_travel']
+#             )
+#         )
+#         kb_builder.add(button)
+    ikb = []
+    ikb.append([types.InlineKeyboardButton(
+        text=Buttons.SORT,
+        callback_data="inventory_sort"
+    )])
+    ikb.append([types.InlineKeyboardButton(
+        text=Buttons.BACK,
+        callback_data="character_menu"
+    )])
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=ikb)
+
     rand_id = models.DBSession.execute(text(
         '''
         SELECT id
@@ -47,6 +68,7 @@ async def start_handler(event: types.Message):
         ORDER BY word LIMIT 1;
         '''
     )).fetchone()[0]
+
     rand_word: models.Word = models.Word.query.get(rand_id)
     examples: List[models.WordExamples] = models.DBSession.query(
         models.WordExamples
@@ -54,18 +76,7 @@ async def start_handler(event: types.Message):
         models.WordExamples.word_id == rand_id
     ).limit(2).all()
 
-    messasge = ((
-        f"Слово: <b>{rand_word.word.capitalize()}</b>\n"
-        f"Перевод: <b>{rand_word.translate_ru.capitalize()}</b>\n"
-    ))
-
-    if examples:
-        messasge += "<b>Примеры:</b>\n"
-
-    for example in examples:
-        messasge += f"<i>- {example.example_sentece}</i>\n"
-
-    await message_helpers.send_message(event, messasge)
+    await message_helpers.send_message(event, Message.WELCOME_MESSAGE, reply_markup=keyboard)
 
 
 # @router.message(lambda msg: msg.text == Button.TRAVEL_TO)
