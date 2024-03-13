@@ -35,6 +35,8 @@ class Word(Model):
     level = Column(types.VARCHAR(10), nullable=True, comment="Уровень сложности слова")
     ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
 
+    
+
 
 class WordTranslation(Model):
     __tablename__ = 'word_translations'

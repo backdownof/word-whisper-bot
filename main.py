@@ -4,7 +4,10 @@ import logging
 
 from views.middlewares.antispam import ThrottlingMiddleware
 from views.middlewares.middleware import MessageMiddleware
-from views import user
+from views import (
+    user,
+    words,
+)
 
 from dotenv import load_dotenv
 from aiohttp import web
@@ -114,6 +117,7 @@ async def local_main():
 
         app_router = Router()
         app_router.include_router(user.router)
+        app_router.include_router(words.router)
 
         app_router.message.middleware(MessageMiddleware())
         app_router.callback_query.middleware(MessageMiddleware())
