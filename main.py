@@ -126,7 +126,7 @@ async def local_main():
 
         dp.message.outer_middleware(ThrottlingMiddleware(storage))
 
-        await bot.delete_webhook(drop_pending_updates=True)
+        # await bot.delete_webhook(drop_pending_updates=True)
 
         logger.info("Bot has started succesfully")
         await dp.start_polling(bot)

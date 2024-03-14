@@ -1,15 +1,35 @@
-## Создание DB, пользователя и присвоение прав:
-#### Заходим в контейнер и для выполнения команд
-docker exec -it <CONTAINER_NAME> psql -U root
+## Установка проекта
+#### Копируем .env
+```bash
+cp ./.env.example ./.env
+```
 
-#### Создаем базу
-CREATE DATABASE <DATABASE_NAME>;
-#### Создаем пользователя
-CREATE USER <USER_NAME> WITH ENCRYPTED PASSWORD '<USER_PASSWORD>';
-#### Даем пользователю права на базу данных
-GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <USER_NAME>;
-ALTER DATABASE <DATABASE_NAME> OWNER TO <USER_PASSWORD>;
+#### Собираем и запускаем контейнеры
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
 
-## Управление бэкапом базы данных
+## Управление миграциями
+
+#### Установка go-migrate
+(необходима версия v4.16.2)
+* https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
+
+#### Применение миграций
+```bash
+make migrate-up
+```
+
+## Управление дампами:
+
+#### Создание pg_dump таблиц со словами и переводами
+```bash
+docker exec -it <CONTAINER_NAME> sh -c 'pg_dump -U <USER_NAME> --column-inserts -a -t words -t word_translations -t word_examples -t word_example_translations <USER_PASSWORD>' > ./backup_words.sql
+```
+
 #### Восстановление базовых слов и переводов из дампа
-docker exec -i <CONTAINER_NAME> /bin/bash -c "PGPASSWORD=<USER_PASSWORD> psql --username <USER_NAME> <DATABASE_NAME>" < db/word_translate_dump.sql
+
+Восстановление дампов занимает до нескольких минут
+```bash
+docker exec -i <CONTAINER_NAME> /bin/bash -c "PGPASSWORD=<USER_PASSWORD> psql --username <USER_NAME> <DATABASE_NAME>" < db/backup_words.sql
+```
