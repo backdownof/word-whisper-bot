@@ -1,7 +1,7 @@
 from typing import List
 
 from aiogram import types
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 def build_inline_keyboard(buttons: List[tuple], adjust_num: int = None):

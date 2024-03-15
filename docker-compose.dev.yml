@@ -1,0 +1,83 @@
+version: "3.9"
+services:
+  pg:
+    container_name: '${PG_CONTAINER_NAME}'
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PG_DB_NAME}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASS}
+      PGPASSWORD: ${PG_PASS}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - ${EXPOSED_PG_PORT}:5432
+    networks:
+      - ww
+    restart: always
+    volumes:
+      - /Users/ab/Developer/postgres_data/16:/var/lib/postgresql/data
+    #   - ./db/init/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d postgres -U ${PG_USER}" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.16.2
+    profiles: ["tools"]
+    volumes:
+      - ./db/migrations:/migrations
+    entrypoint:
+      [
+        "migrate",
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://${PG_USER}:${PG_PASS}@${PG_CONTAINER_NAME}:5432/${PG_DB_NAME}?sslmode=disable",
+      ]
+    command: ["up"]
+    networks:
+      - ww
+    depends_on:
+      pg:
+        condition: service_healthy
+    restart: on-failure
+
+  redis:
+    container_name: 'ww_redis'
+    image: redis:7.2.4-alpine
+    restart: always
+    ports:
+      - 16379:6379
+    networks:
+      - ww
+    command: redis-server --loglevel warning --requirepass ${REDIS_PASS} --maxmemory 512mb
+    volumes: 
+      - redis:/data
+
+  app:
+    container_name: 'word_whisper'
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - 5123:5123
+    networks:
+      - ww
+    depends_on:
+      - pg
+      - redis
+    volumes:
+      - .:/app
+    restart: always
+
+volumes:
+  pg:
+    driver: local
+  redis:
+    driver: local
+
+networks:
+  ww:
+     driver: bridge
