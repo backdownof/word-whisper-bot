@@ -14,6 +14,7 @@ class User(Model):
     tg_id = Column(types.BigInteger, nullable=False, comment="ID пользователя в Телеграм")
     tg_nickname = Column(types.Text, nullable=True, server_default="''::text", comment="Имя пользователя в Телеграм")
     word_of_day_subscribed = Column(types.Boolean, nullable=False, server_default="true", comment="Флаг, указывающий на то подписан ли пользователь на слово дня")
+    level_settings = Column(types.Text, nullable=False, server_default="'0,1,2,3,4,5,6'::text", comment="Строковое представление уровней сложности изучаемых слов пользователя")
     ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
     utime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время обновления записи")
 
@@ -35,7 +36,7 @@ class Word(Model):
     level = Column(types.VARCHAR(10), nullable=True, comment="Уровень сложности слова")
     ctime = Column(types.DateTime, nullable=False, server_default=func.timezone('UTC', func.now()), comment="Дата и время создания записи")
 
-    
+
 
 
 class WordTranslation(Model):

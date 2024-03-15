@@ -1,4 +1,4 @@
-from views.constants import buttons, words
+from views.constants import buttons
 
 
 class Message:
@@ -9,11 +9,11 @@ class Message:
         f"Для быстрого перевода слова или фразы, отправьте слово или фразу текстом.\n\n"
         "В настройках вы можете выбрать желаемые уровни сложности предлагаемых слов.\n"
         "Доступные уровни:\n"
-        f"- {words.WordLevel.A1}, {words.WordLevel.A2}\n"
-        f"- {words.WordLevel.B1}, {words.WordLevel.B2}\n"
-        f"- {words.WordLevel.C1}, {words.WordLevel.C2}\n"
-        f"- {words.WordLevel.UNKNOWN} (этот уровень не был определен автоматически)\n"
-        f"- {words.WordLevel.ALL}\n\n"
+        f"- {buttons.WordLevelButton.A1}, {buttons.WordLevelButton.A2}\n"
+        f"- {buttons.WordLevelButton.B1}, {buttons.WordLevelButton.B2}\n"
+        f"- {buttons.WordLevelButton.C1}, {buttons.WordLevelButton.C2}\n"
+        f"- {buttons.WordLevelButton.UNKNOWN} (этот уровень не был определен автоматически)\n"
+        f"- {buttons.WordLevelButton.SELECT_ALL}\n\n"
         "Также вы можете помочь улучшить перевод слов, примеров, предложить новое слово или словосочетание, или добавить примеры к уже существующим словам.\n"
         f"Нажмите кнопку <b>{buttons.Button.EDIT}</b> во время изучения слов.\n\n"
         f"В настройках вы можете выбрать, в какое время вам присылать новое слово для изучения. "
@@ -21,3 +21,7 @@ class Message:
     )
 
     NO_NEW_WORDS = "К сожалению, новых слов для изучения нет (или возникла ошибка). Попробуйте позже"
+
+    NO_SUCH_MENU_YET = "Данное меню на текущий момент не реализовано"
+
+    SETTINGS = "Выберите нужное меню настроек"

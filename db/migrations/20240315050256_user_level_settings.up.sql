@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "level_settings" TEXT NOT NULL DEFAULT '0,1,2,3,4,5,6';
+COMMENT ON COLUMN "users"."level_settings" IS 'Строковое представление уровней сложности изучаемых слов пользователя';

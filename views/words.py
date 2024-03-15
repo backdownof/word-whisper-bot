@@ -7,7 +7,7 @@ from views.constants.messages import Message
 from views.helpers import messages as message_helpers, keyboard as kb_helpers
 
 from aiogram import types, Router, F
-from sqlalchemy import tablesample, func
+from sqlalchemy import tablesample
 from sqlalchemy.orm import aliased
 
 router = Router()
@@ -15,18 +15,6 @@ router = Router()
 
 @router.callback_query(F.data == Callback.NEXT_WORD)
 async def new_word(event: types.Message):
-    user = models.User.get_by_tg_id(event.from_user.id)
-    if not user:
-        user = models.User(
-            full_name=event.from_user.full_name,
-            tg_id=event.from_user.id,
-            tg_nickname=event.from_user.username,
-        )
-        user.add()
-
-        transaction.commit()
-        user.add()
-
     keyboard_data = [
         (Button.NEXT_WORD, Callback.NEXT_WORD),
         (Button.SETTINGS, Callback.SETTINGS),
@@ -35,7 +23,7 @@ async def new_word(event: types.Message):
 
     random_word_alias = aliased(
         models.Word,
-        tablesample(models.Word, func.bernoulli(2.5))
+        tablesample(models.Word, 2.5)
     )
     word_and_translation: models.WordExamples = models.DBSession.query(
         random_word_alias,
