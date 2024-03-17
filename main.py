@@ -33,7 +33,8 @@ WEBAPP_PATH = os.getenv('WEBAPP_PATH')
 
 REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
-REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+REDIS_PASS = os.getenv('REDIS_PASS')
+REDIS_EXPOSED_PORT = os.getenv('REDIS_EXPOSED_PORT')
 
 
 async def on_startup(dispatcher: Dispatcher, bot: Bot):
@@ -108,7 +109,8 @@ async def on_shutdown(dispatcher: Dispatcher, bot: Bot):
 async def local_main():
     bot = Bot(token=BOT_TOKEN)
 
-    storage = RedisStorage.from_url(f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0')
+    storage = RedisStorage.from_url(f'redis://default:{REDIS_PASS}@{REDIS_HOST}:{REDIS_PORT}/0')
+    # storage = RedisStorage.from_url(f'redis://default:{REDIS_PASS}@localhost:{REDIS_EXPOSED_PORT}/0')
 
     try:
         dp = Dispatcher(storage=MemoryStorage())

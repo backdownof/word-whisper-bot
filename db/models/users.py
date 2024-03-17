@@ -25,6 +25,13 @@ class User(Model):
             User.tg_id == tg_id,
         ).first()
 
+    @property
+    def selected_levels(self):
+        if not self.level_settings:
+            return []
+
+        return [int(level_idx_str) for level_idx_str in self.level_settings.split(',')]
+
 
 class Word(Model):
     __tablename__ = 'words'

@@ -12,13 +12,15 @@ class Message:
         f"- {buttons.WordLevelButton.A1}, {buttons.WordLevelButton.A2}\n"
         f"- {buttons.WordLevelButton.B1}, {buttons.WordLevelButton.B2}\n"
         f"- {buttons.WordLevelButton.C1}, {buttons.WordLevelButton.C2}\n"
-        f"- {buttons.WordLevelButton.UNKNOWN} (этот уровень не был определен автоматически)\n"
+        f"- {buttons.WordLevelButton.UKNOWN_TEXT} (этот уровень не был определен автоматически)\n"
         f"- {buttons.WordLevelButton.SELECT_ALL}\n\n"
         "Также вы можете помочь улучшить перевод слов, примеров, предложить новое слово или словосочетание, или добавить примеры к уже существующим словам.\n"
         f"Нажмите кнопку <b>{buttons.Button.EDIT}</b> во время изучения слов.\n\n"
         f"В настройках вы можете выбрать, в какое время вам присылать новое слово для изучения. "
         "Или совсем отключить функцию автоматической отправки новых слов для изучения.\n"
     )
+
+    NO_LEVEL_SELECTED = "Не выбран ни один уровень для изучения. Проверьте настройки и выберите желаемые уровни слов."
 
     NO_NEW_WORDS = "К сожалению, новых слов для изучения нет (или возникла ошибка). Попробуйте позже"
 

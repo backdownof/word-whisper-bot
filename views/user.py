@@ -5,6 +5,7 @@ from views.constants.commands import Command as command_const
 from views.constants.messages import Message
 from views.helpers import messages as message_helpers, keyboard as kb_helpers
 
+import transaction
 from aiogram import types, Router, F
 from aiogram.filters.command import Command
 
@@ -46,23 +47,32 @@ async def user_notification_settings(event: types.Message):
 
 @router.callback_query(F.data == callback_const.WORD_LEVEL_SETTINGS)
 async def user_word_level_settings(event: types.Message, user: models.User):
-    level_indexes = [int(level_idx_str) for level_idx_str in user.level_settings.split(',')]
-
-    keyboard_data = []
-    for idx, level_button in enumerate(WordLevelButton.ALL):
-        selected = "✅ " if idx in level_indexes else ""
-        button_text = f"{selected}{level_button}"
-        button_callback = f"{callback_const.WORD_LEVEL_SELECTED}_{idx}"
-
-        keyboard_data.append((button_text, button_callback))
-
-    if not level_indexes:
-        button_text = WordLevelButton.SELECT_ALL
-        button_callback = f"{callback_const.WORD_LEVEL_SELECTED}_{callback_const.ALL_WORD_LEVELS}"
-        keyboard_data.append((button_text, button_callback))
-
-    keyboard_data.append((Button.MENU, callback_const.NEXT_WORD))
-
+    keyboard_data = kb_helpers.get_user_level_settings_keyboard(user)
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
 
     await message_helpers.send_message(event, Message.SETTINGS, reply_markup=kb)
+
+
+@router.callback_query(F.data.regexp(f"^{callback_const.WORD_LEVEL_SELECTED}_\d+$"))
+async def user_word_level_selected(callback: types.CallbackQuery, user: models.User):
+    selected_level = int(
+        callback.data.removeprefix(
+            callback_const.WORD_LEVEL_SELECTED
+        ).split('_', 1)[1]
+    )
+
+    if selected_level == int(callback_const.ALL_WORD_LEVELS):
+        user.level_settings = ','.join([str(idx) for idx, _ in enumerate(WordLevelButton.ALL)])
+    elif selected_level in user.selected_levels:
+        user.level_settings = ','.join(str(idx) for idx in user.selected_levels if idx != selected_level)
+    else:
+        user.level_settings = f"{user.level_settings},{selected_level}" if user.level_settings else str(selected_level)
+
+    user.add()
+
+    keyboard_data = kb_helpers.get_user_level_settings_keyboard(user)
+    kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
+
+    transaction.commit()
+
+    await message_helpers.send_message(callback, Message.SETTINGS, reply_markup=kb)

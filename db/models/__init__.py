@@ -16,8 +16,10 @@ PG_PASS = os.getenv('PG_PASS')
 PG_HOST = os.getenv('PG_HOST')
 PG_PORT = os.getenv('PG_PORT')
 PG_DB_NAME = os.getenv('PG_DB_NAME')
+PG_EXPOSED_PORT = os.getenv('PG_EXPOSED_PORT')
 
-db_url = f"postgresql://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DB_NAME}"
+# db_url = f"postgresql://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DB_NAME}"
+db_url = f"postgresql://{PG_USER}:{PG_PASS}@localhost:{PG_EXPOSED_PORT}/{PG_DB_NAME}"
 
 engine = create_engine(db_url)
 

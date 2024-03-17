@@ -10,7 +10,7 @@ services:
       PGPASSWORD: ${PG_PASS}
       PGDATA: "/var/lib/postgresql/data/pgdata"
     ports:
-      - ${EXPOSED_PG_PORT}:5432
+      - ${PG_EXPOSED_PORT}:5432
     networks:
       - ww
     restart: always
