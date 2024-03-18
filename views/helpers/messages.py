@@ -1,11 +1,30 @@
+import os
 from typing import List, Tuple
 
 from db import models
 
-from aiogram import types
+from aiogram import Bot, types
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+bot = Bot(token=BOT_TOKEN)
 
 
-async def send_message(event, text, reply_markup=None):
+async def send_message(text, reply_markup=None, event=None, user: models.User = None):
+    if not event and user:
+        await bot.send_message(
+            text=text,
+            chat_id=user.tg_id,
+            reply_markup=reply_markup,
+            parse_mode='HTML'
+        )
+        return
+
+    if not event and not user:
+        raise ValueError("Either event or user should be provided to send a message")
+
     if isinstance(event, types.CallbackQuery):
         await event.message.edit_text(text, parse_mode='HTML')
         if reply_markup:
@@ -38,4 +57,10 @@ class MessageTemplates:
         message += "\n<b>Примеры:</b>\n"
         message += '\n'.join(examples)
 
+        return message
+
+    def get_new_daily_word_message(word_and_translation: Tuple[models.Word, models.WordTranslation]):
+        message = "<b>Ваше слово дня</b>\n\n"
+
+        message += MessageTemplates.get_new_word_message(word_and_translation)
         return message

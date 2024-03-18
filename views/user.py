@@ -22,7 +22,11 @@ async def start_handler(event: types.Message):
     ]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
 
-    await message_helpers.send_message(event, Message.WELCOME_MESSAGE, reply_markup=kb)
+    await message_helpers.send_message(
+        event=event,
+        text=Message.WELCOME_MESSAGE,
+        reply_markup=kb
+    )
 
 
 @router.callback_query(F.data == callback_const.SETTINGS)
@@ -34,7 +38,11 @@ async def user_settings(event: types.Message):
     ]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=1)
 
-    await message_helpers.send_message(event, Message.SETTINGS, reply_markup=kb)
+    await message_helpers.send_message(
+        event=event,
+        text=Message.SETTINGS,
+        reply_markup=kb
+    )
 
 
 @router.callback_query(F.data == callback_const.NOTIFICATION_SETTINGS)
@@ -42,7 +50,11 @@ async def user_notification_settings(event: types.Message):
     keyboard_data = [(Button.MENU, callback_const.NEXT_WORD)]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=1)
 
-    await message_helpers.send_message(event, Message.NO_SUCH_MENU_YET, reply_markup=kb)
+    await message_helpers.send_message(
+        event=event,
+        text=Message.NO_SUCH_MENU_YET,
+        reply_markup=kb
+    )
 
 
 @router.callback_query(F.data == callback_const.WORD_LEVEL_SETTINGS)
@@ -50,7 +62,11 @@ async def user_word_level_settings(event: types.Message, user: models.User):
     keyboard_data = kb_helpers.get_user_level_settings_keyboard(user)
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
 
-    await message_helpers.send_message(event, Message.SETTINGS, reply_markup=kb)
+    await message_helpers.send_message(
+        event=event,
+        text=Message.SETTINGS,
+        reply_markup=kb
+    )
 
 
 @router.callback_query(F.data.regexp(f"^{callback_const.WORD_LEVEL_SELECTED}_\d+$"))
@@ -75,4 +91,8 @@ async def user_word_level_selected(callback: types.CallbackQuery, user: models.U
 
     transaction.commit()
 
-    await message_helpers.send_message(callback, Message.SETTINGS, reply_markup=kb)
+    await message_helpers.send_message(
+        event=callback,
+        text=Message.SETTINGS,
+        reply_markup=kb
+    )

@@ -72,6 +72,33 @@ services:
       - .:/app
     restart: always
 
+  default_celeryworker:
+    container_name: celeryworker
+    build: .
+    volumes:
+      - ./:/app
+    networks:
+      - ww
+    command: celery -A async_tasks.celery worker
+    links:
+      - redis
+    depends_on:
+      - redis
+      - app
+
+  celeryscheduler:
+    container_name: celeryscheduler
+    build: .
+    volumes:
+      - ./:/app
+    networks:
+      - ww
+    command: celery -A async_tasks.celery beat
+    links:
+      - redis
+    depends_on:
+      - default_celeryworker
+
 volumes:
   pg:
     driver: local

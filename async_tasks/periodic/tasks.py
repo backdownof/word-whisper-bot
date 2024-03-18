@@ -1,17 +1,36 @@
+import asyncio
+
 from db import models
-from views.constants.buttons import Button, WordLevelButton
+from async_tasks.celery import app
+from views.constants.buttons import Button
 from views.constants.callbacks import Callback
 from views.constants.messages import Message
+from views.constants.buttons import WordLevelButton
 from views.helpers import messages as message_helpers, keyboard as kb_helpers
 
-from aiogram import types, Router, F
 from sqlalchemy import func
 
-router = Router()
+
+@app.task
+def send_daily_word():
+    users_subscribed_query = models.DBSession.query(
+        models.User
+    ).filter(
+        models.User.word_of_day_subscribed.is_(True)
+    )
+
+    loop = asyncio.get_event_loop()
+
+    loop.run_until_complete(run_user_cycle(users_subscribed_query))
 
 
-@router.callback_query(F.data == Callback.NEXT_WORD)
-async def new_word(event: types.Message, user: models.User):
+async def run_user_cycle(users_subscribed_query):
+    async with asyncio.TaskGroup() as tg:
+        for user in users_subscribed_query:
+            tg.create_task(send_daily_word_to_user(user))
+
+
+async def send_daily_word_to_user(user: models.User):
     keyboard_data = [
         (Button.NEXT_WORD, Callback.NEXT_WORD),
         (Button.SETTINGS, Callback.SETTINGS),
@@ -21,14 +40,6 @@ async def new_word(event: types.Message, user: models.User):
     user_levels = [WordLevelButton.ALL[idx] for idx in user.selected_levels]
     if len(WordLevelButton.ALL) in user_levels:
         user_levels.append('')
-
-    if not user_levels:
-        await message_helpers.send_message(
-            event=event,
-            text=Message.NO_LEVEL_SELECTED,
-            reply_markup=kb
-        )
-        return
 
     word_and_translation: models.WordExamples = models.DBSession.query(
         models.Word,
@@ -42,16 +53,16 @@ async def new_word(event: types.Message, user: models.User):
 
     if not word_and_translation:
         await message_helpers.send_message(
-            event=event,
             text=Message.NO_NEW_WORDS,
-            reply_markup=kb
+            reply_markup=kb,
+            user=user
         )
         return
 
-    message = message_helpers.MessageTemplates.get_new_daily_word_message(word_and_translation)
+    message = message_helpers.MessageTemplates.get_new_word_message(word_and_translation)
 
     await message_helpers.send_message(
-        event=event,
         text=message,
-        reply_markup=kb
+        reply_markup=kb,
+        user=user
     )
