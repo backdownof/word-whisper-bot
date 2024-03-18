@@ -2,6 +2,7 @@ import os
 import asyncio
 import logging
 
+from config import App
 from views.middlewares.antispam import ThrottlingMiddleware
 from views.middlewares.middleware import MessageMiddleware
 from views import (
@@ -9,18 +10,13 @@ from views import (
     words,
 )
 
-from dotenv import load_dotenv
 from aiohttp import web
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
-load_dotenv()
-
 logger = logging.getLogger(__name__)
-
-ENV = os.getenv('SERVER_SOFTWARE')
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 WEBHOOK_HOST = os.getenv('WEBHOOK_HOST')
@@ -30,11 +26,6 @@ WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 WEBAPP_HOST = os.getenv('WEBAPP_HOST')
 WEBAPP_PORT = os.getenv('WEBAPP_PORT')
 WEBAPP_PATH = os.getenv('WEBAPP_PATH')
-
-REDIS_HOST = os.getenv('REDIS_HOST')
-REDIS_PORT = os.getenv('REDIS_PORT')
-REDIS_PASS = os.getenv('REDIS_PASS')
-REDIS_EXPOSED_PORT = os.getenv('REDIS_EXPOSED_PORT')
 
 
 async def on_startup(dispatcher: Dispatcher, bot: Bot):
@@ -109,8 +100,7 @@ async def on_shutdown(dispatcher: Dispatcher, bot: Bot):
 async def local_main():
     bot = Bot(token=BOT_TOKEN)
 
-    storage = RedisStorage.from_url(f'redis://default:{REDIS_PASS}@{REDIS_HOST}:{REDIS_PORT}/0')
-    # storage = RedisStorage.from_url(f'redis://default:{REDIS_PASS}@localhost:{REDIS_EXPOSED_PORT}/0')
+    storage = RedisStorage.from_url(f"{App.config('REDIS_URI')}/0")
 
     try:
         dp = Dispatcher(storage=MemoryStorage())

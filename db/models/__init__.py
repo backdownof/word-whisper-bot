@@ -1,27 +1,15 @@
 import logging
-import os
+
+from config import App
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 from zope.sqlalchemy import register
-from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-
-PG_USER = os.getenv('PG_USER')
-PG_PASS = os.getenv('PG_PASS')
-PG_HOST = os.getenv('PG_HOST')
-PG_PORT = os.getenv('PG_PORT')
-PG_DB_NAME = os.getenv('PG_DB_NAME')
-PG_EXPOSED_PORT = os.getenv('PG_EXPOSED_PORT')
-
-db_url = f"postgresql://{PG_USER}:{PG_PASS}@{PG_HOST}:{PG_PORT}/{PG_DB_NAME}"
-# db_url = f"postgresql://{PG_USER}:{PG_PASS}@localhost:{PG_EXPOSED_PORT}/{PG_DB_NAME}"
-
-engine = create_engine(db_url)
+engine = create_engine(App.config('POSTGRES_URI'))
 
 DBSession = scoped_session(sessionmaker(bind=engine))
 register(DBSession)
@@ -80,6 +68,7 @@ class Model (Base):
         return 'Object <{0}. ID:{1}>'.format(self.__class__.__name__, self.id)
 
 
+from config import App
 from db.models.users import *  # noqa: F403
 
 

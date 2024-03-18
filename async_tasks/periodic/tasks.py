@@ -9,10 +9,11 @@ from views.constants.buttons import WordLevelButton
 from views.helpers import messages as message_helpers, keyboard as kb_helpers
 
 from sqlalchemy import func
+from celery import shared_task, states
 
 
-@app.task
-def send_daily_word():
+@shared_task(bind=True, soft_time_limit=20)
+def send_daily_word(self):
     users_subscribed_query = models.DBSession.query(
         models.User
     ).filter(
@@ -22,6 +23,7 @@ def send_daily_word():
     loop = asyncio.get_event_loop()
 
     loop.run_until_complete(run_user_cycle(users_subscribed_query))
+    self.update_state(state=states.SUCCESS)
 
 
 async def run_user_cycle(users_subscribed_query):

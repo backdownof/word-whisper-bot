@@ -1,20 +1,14 @@
-import os
 from typing import List, Tuple
 
+from config import App
 from db import models
 
-from aiogram import Bot, types
-from dotenv import load_dotenv
-
-load_dotenv()
-
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-bot = Bot(token=BOT_TOKEN)
+from aiogram import types
 
 
 async def send_message(text, reply_markup=None, event=None, user: models.User = None):
     if not event and user:
-        await bot.send_message(
+        await App.bot.send_message(
             text=text,
             chat_id=user.tg_id,
             reply_markup=reply_markup,
