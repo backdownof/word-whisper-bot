@@ -1,15 +1,18 @@
+import logging
 import asyncio
 
+from config import App
 from db import models
-from async_tasks.celery import app
 from views.constants.buttons import Button
 from views.constants.callbacks import Callback
 from views.constants.messages import Message
-from views.constants.buttons import WordLevelButton
+from views.constants.words import TranslationLanguage
 from views.helpers import messages as message_helpers, keyboard as kb_helpers
+from async_tasks.helpers.messages import send_daily_word_to_user
 
-from sqlalchemy import func
 from celery import shared_task, states
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, soft_time_limit=20)
@@ -32,16 +35,26 @@ async def run_user_cycle(users_subscribed_query):
             tg.create_task(send_daily_word_to_user(user))
 
 
-async def send_daily_word_to_user(user: models.User):
+@shared_task
+def translate_phrase(word, user_id):
+    user = models.User.query.get(user_id)
+
     keyboard_data = [
         (Button.NEXT_WORD, Callback.NEXT_WORD),
         (Button.SETTINGS, Callback.SETTINGS),
     ]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
 
-    user_levels = [WordLevelButton.ALL[idx] for idx in user.selected_levels]
-    if len(WordLevelButton.ALL) in user_levels:
-        user_levels.append('')
+    loop = asyncio.get_event_loop()
+    if len(word) > 300:
+        loop.run_until_complete(
+            message_helpers.send_message(
+                text=Message.CANNOT_TRANSLATE_LONG,
+                reply_markup=kb,
+                user=user
+            )
+        )
+        return
 
     word_and_translation: models.WordExamples = models.DBSession.query(
         models.Word,
@@ -50,21 +63,49 @@ async def send_daily_word_to_user(user: models.User):
         models.WordTranslation,
         models.WordTranslation.word_id == models.Word.id,
     ).filter(
-        models.Word.level.in_(user_levels)
-    ).order_by(func.random()).first()
+        models.Word.word == word
+    ).first()
 
-    if not word_and_translation:
-        await message_helpers.send_message(
-            text=Message.NO_NEW_WORDS,
-            reply_markup=kb,
-            user=user
+    if word_and_translation:
+        message = message_helpers.MessageTemplates.get_new_word_message(word_and_translation)
+
+        loop.run_until_complete(
+            message_helpers.send_message(
+                text=message,
+                reply_markup=kb,
+                user=user
+            )
         )
         return
 
-    message = message_helpers.MessageTemplates.get_new_word_message(word_and_translation)
+    prefix = 'translate to ru: ' + word
+    input_ids = App.tokenizer(prefix, return_tensors="pt").input_ids
+    language_ids = App.model.generate(input_ids)
+    tr = App.tokenizer.decode(language_ids[0], skip_special_tokens=True)
 
-    await message_helpers.send_message(
-        text=message,
-        reply_markup=kb,
-        user=user
+    ru_translate = tr or ''
+
+    w = models.Word(
+        word=word,
+        level='',
+        meaning=''
+    )
+    w.add()
+    w.flush()
+
+    word_translation = models.WordTranslation(
+        word_id=w.id,
+        language=TranslationLanguage.RU,
+        translation=ru_translate
+    )
+    word_translation.add()
+
+    message = message_helpers.MessageTemplates.get_new_word_message((w, word_translation))
+
+    loop.run_until_complete(
+        message_helpers.send_message(
+            text=message,
+            reply_markup=kb,
+            user=user
+        )
     )

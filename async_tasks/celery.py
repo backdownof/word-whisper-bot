@@ -1,3 +1,6 @@
+from __future__ import absolute_import, unicode_literals
+
+import logging
 import datetime
 
 from async_tasks.constants import DailyWordTask
@@ -7,6 +10,9 @@ from db import models
 import celery
 from celery import Celery
 from celery.schedules import crontab
+from celery.signals import worker_init
+
+logger = logging.getLogger(__name__)
 
 
 app = Celery(
@@ -32,6 +38,23 @@ app.conf.beat_schedule = {
         # 'schedule': 15,
     },
 }
+
+
+@worker_init.connect
+def before_start(sender, **k):
+    from transformers import T5ForConditionalGeneration, T5Tokenizer
+
+    model_name = 'utrobinmv/t5_translate_en_ru_zh_base_200'
+    logger.info('Start initializing translate_tokenizer...')
+    tokenizer = T5Tokenizer.from_pretrained(model_name)
+    logger.info('End initializing translate_tokenizer')
+
+    logger.info('Start initializing translate_model...')
+    model = T5ForConditionalGeneration.from_pretrained(model_name)
+    logger.info('End initializing translate_model')
+
+    App.tokenizer = tokenizer
+    App.model = model
 
 
 class SqlAlchemyTask(celery.Task):

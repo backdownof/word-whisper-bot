@@ -8,7 +8,7 @@ from aiogram import types
 
 async def send_message(text, reply_markup=None, event=None, user: models.User = None):
     if not event and user:
-        await App.bot.send_message(
+        await App.bot().send_message(
             text=text,
             chat_id=user.tg_id,
             reply_markup=reply_markup,

@@ -27,6 +27,8 @@ class App:
         'PG_EXPOSED_PORT': os.getenv('PG_EXPOSED_PORT'),
     }
     __setters = []
+    tokenizer = None
+    model = None
 
     @staticmethod
     def config(name):

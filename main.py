@@ -6,6 +6,7 @@ from config import App
 from views.middlewares.antispam import ThrottlingMiddleware
 from views.middlewares.middleware import MessageMiddleware
 from views import (
+    translate,
     user,
     words,
 )
@@ -110,6 +111,7 @@ async def local_main():
         app_router = Router()
         app_router.include_router(user.router)
         app_router.include_router(words.router)
+        app_router.include_router(translate.router)
 
         app_router.message.middleware(MessageMiddleware())
         app_router.callback_query.middleware(MessageMiddleware())
