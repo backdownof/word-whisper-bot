@@ -1,3 +1,5 @@
+# Telegram bot for learning new english words / Телеграм бот для изучения новых английский слов
+
 ## Установка проекта
 #### Копируем .env
 ```bash
