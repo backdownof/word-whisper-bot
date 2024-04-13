@@ -1,8 +1,8 @@
-# поправил импорты по PEP
-from sqlalchemy import func
+from aiogram import types, Router, F
+from sqlalchemy import func, select, not_
 import transaction
 
-from aiogram import types, Router, F
+
 from db import models
 from views.constants.buttons import Button, WordLevelButton
 from views.constants.callbacks import Callback
@@ -26,6 +26,9 @@ async def new_word(event: types.Message, user: models.User):
         )
         return
 
+    user_words = models.DBSession.execute(select(models.UserWord.word_id).where(
+        models.UserWord.user_id == user.id, models.UserWord.list_added == True))
+
     word_and_translation: models.WordExamples = models.DBSession.query(
         models.Word,
         models.WordTranslation
@@ -34,14 +37,17 @@ async def new_word(event: types.Message, user: models.User):
         models.WordTranslation.word_id == models.Word.id,
     ).filter(
         models.Word.level.in_(user_levels)
+    ).filter(not_(
+        models.Word.id.in_(user_words.scalars()))
     ).order_by(func.random()).first()
     keyboard_data = [
         (Button.NEXT_WORD, Callback.NEXT_WORD),
         (Button.SETTINGS, Callback.SETTINGS),
         (Button.ADD_LEARNING, f'{Callback.ADD_LEARNING}_{word_and_translation[0].id}')
-
     ]
+    logging.warning(word_and_translation)
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)    
+    
     if not word_and_translation:
         await message_helpers.send_message(
             event=event,
@@ -64,7 +70,6 @@ async def add_word(event, user: models.User):
         (Button.NEXT_WORD, Callback.NEXT_WORD),
         (Button.SETTINGS, Callback.SETTINGS),
         (Button.DELETE_LEARNING, Callback.DELETE_LEARNING)
-
     ]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
     word_id = event.data.split('_')[-1]
@@ -74,13 +79,14 @@ async def add_word(event, user: models.User):
     new_user_word.word_id = word_id  
     new_user_word.learned = False
     new_user_word.list_added = True
-    models.DBSession.add(new_user_word)
+    # models.DBSession.add(new_user_word)
+    new_user_word.add()
     transaction.commit()
-    word = models.DBSession.query(models.Word).filter_by(id=word_id).first()
+    word = models.Word.query.get(word_id)
     word = word.word
     
     await message_helpers.send_message(
         event=event,
-        text = f'Слово <b>{word}</> добавлено в карточки для изучения!',
+        text=f'Слово <b>{word}</> добавлено в карточки для изучения!',
         reply_markup=kb,
-        )
+    )

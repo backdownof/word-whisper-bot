@@ -1,7 +1,6 @@
 class Callback:
     NEXT_WORD = 'next_word'
-    # Убрал to из названия колбэка и кнопки (мне показалось так логичнее и проще)
-    ADD_LEARNING = "add_learning"
+    ADD_LEARNING = 'add_learning'
     DELETE_LEARNING = 'delete_learning'
     REPEAT_WORDS = 'repeat_words'
     SETTINGS = 'settings'
