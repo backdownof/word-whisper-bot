@@ -1,5 +1,5 @@
 from aiogram import types, Router, F
-from sqlalchemy import func, select, not_
+from sqlalchemy import func, select, not_, join, and_, outerjoin, or_
 import transaction
 
 
@@ -25,27 +25,35 @@ async def new_word(event: types.Message, user: models.User):
             reply_markup=kb
         )
         return
+    
+    subquery = select(
+        models.UserWord
+    ).where(
+        models.UserWord.user_id == user.id,
+        models.UserWord.list_added.is_(True)
+    ).with_only_columns(
+        models.UserWord.word_id
+    )
 
-    user_words = models.DBSession.execute(select(models.UserWord.word_id).where(
-        models.UserWord.user_id == user.id, models.UserWord.list_added == True))
-
-    word_and_translation: models.WordExamples = models.DBSession.query(
+    word_and_translation = models.DBSession.execute(select(
         models.Word,
         models.WordTranslation
     ).join(
         models.WordTranslation,
         models.WordTranslation.word_id == models.Word.id,
-    ).filter(
+    ).where(
         models.Word.level.in_(user_levels)
-    ).filter(not_(
-        models.Word.id.in_(user_words.scalars()))
-    ).order_by(func.random()).first()
+    ).where(
+        models.Word.id.notin_(subquery)
+    ).order_by(
+        func.random()
+    )).first()
+
     keyboard_data = [
         (Button.NEXT_WORD, Callback.NEXT_WORD),
         (Button.SETTINGS, Callback.SETTINGS),
         (Button.ADD_LEARNING, f'{Callback.ADD_LEARNING}_{word_and_translation[0].id}')
     ]
-    logging.warning(word_and_translation)
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)    
     
     if not word_and_translation:
@@ -79,7 +87,6 @@ async def add_word(event, user: models.User):
     new_user_word.word_id = word_id  
     new_user_word.learned = False
     new_user_word.list_added = True
-    # models.DBSession.add(new_user_word)
     new_user_word.add()
     transaction.commit()
     word = models.Word.query.get(word_id)
