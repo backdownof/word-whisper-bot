@@ -25,7 +25,7 @@ async def new_word(event: types.Message, user: models.User):
             reply_markup=kb
         )
         return
-    
+
     subquery = select(
         models.UserWord
     ).where(
@@ -55,7 +55,7 @@ async def new_word(event: types.Message, user: models.User):
         (Button.ADD_LEARNING, f'{Callback.ADD_LEARNING}_{word_and_translation[0].id}')
     ]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)    
-    
+
     if not word_and_translation:
         await message_helpers.send_message(
             event=event,
@@ -81,7 +81,7 @@ async def add_word(event, user: models.User):
     ]
     kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
     word_id = event.data.split('_')[-1]
- 
+
     new_user_word = models.UserWord()
     new_user_word.user_id = user.id  
     new_user_word.word_id = word_id  
@@ -91,7 +91,7 @@ async def add_word(event, user: models.User):
     transaction.commit()
     word = models.Word.query.get(word_id)
     word = word.word
-    
+
     await message_helpers.send_message(
         event=event,
         text=f'Слово <b>{word}</> добавлено в карточки для изучения!',
