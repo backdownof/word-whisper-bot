@@ -5,7 +5,7 @@ class Message:
     WELCOME_MESSAGE = (
         "<b>WordWhisperBot</b> приветствует вас!\n"
         f"Чтобы выучить новое слово, нажмите кнопку [<b>{buttons.Button.NEXT_WORD}</b>]\n\n"
-        f"Вы можете пометить слово, как [<b>{buttons.Button.ALREADY_KNOW}</b>], [<b>{buttons.Button.ADD_TO_LEARNING}</b>]\n\n"
+        f"Вы можете пометить слово, как [<b>{buttons.Button.ALREADY_KNOW}</b>], [<b>{buttons.Button.ADD_LEARNING}</b>]\n\n"
         f"Для быстрого перевода слова или фразы, отправьте слово или фразу текстом.\n\n"
         "В настройках вы можете выбрать желаемые уровни сложности предлагаемых слов.\n"
         "Доступные уровни:\n"

@@ -1,5 +1,7 @@
 class Callback:
     NEXT_WORD = 'next_word'
+    ADD_LEARNING = 'add_learning'
+    DELETE_LEARNING = 'delete_learning'
     REPEAT_WORDS = 'repeat_words'
     SETTINGS = 'settings'
     TRANSLATE = 'translate'

@@ -75,6 +75,9 @@ class UserWord(Model):
     user = relationship('User')
     word = relationship('Word')
 
+    def __repr__(self) -> str:
+        return f'Userword object {self.user_id} {self.word_id}'
+
 
 class WordExamples(Model):
     __tablename__ = 'word_examples'
