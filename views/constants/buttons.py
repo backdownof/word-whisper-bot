@@ -1,8 +1,10 @@
 class Button:
     NEXT_WORD = "Next Word"
+    NEXT_LEARNED = "Следующее"
     REPEAT_WORDS = "Повторить изученное"
     ALREADY_KNOW = "Уже изученное"
     ADD_LEARNING = "Добавить для изучения"
+    LEARNED = "Изучил"
     DELETE_LEARNING = "Убрать из карточек"
     EDIT = "Исправить"
     SETTINGS = "Настройки"
