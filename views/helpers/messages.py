@@ -38,7 +38,6 @@ async def delete_and_send_message(
     await App.bot().send_message(
         text=text, chat_id=user.tg_id, reply_markup=reply_markup, parse_mode="HTML"
     )
-    return
 
 class MessageTemplates:
     def get_new_word_message(word_and_translation: Tuple[models.Word, models.WordTranslation]):

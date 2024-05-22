@@ -137,17 +137,17 @@ async def repeat_word(event: types.CallbackQuery, user: models.User):
         await message_helpers.delete_and_send_message(
             message=event.message, text=text, reply_markup=kb, user=user
         )
-    else:
-        keyboard_data = [
-            (Button.NEXT_WORD, Callback.NEXT_WORD),
-        ]
-        kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
+        return
+    keyboard_data = [
+        (Button.NEXT_WORD, Callback.NEXT_WORD),
+    ]
+    kb = kb_helpers.build_inline_keyboard(keyboard_data, adjust_num=2)
 
-        await message_helpers.send_message(
-            event=event,
-            text="Вы еще не добавили ни одного слова к изучению",
-            reply_markup=kb,
-        )
+    await message_helpers.send_message(
+        event=event,
+        text="Вы еще не добавили ни одного слова к изучению",
+        reply_markup=kb,
+    )
 
 
 @router.callback_query(F.data.regexp(f"^{Callback.LEARNED}_\d+$"))
