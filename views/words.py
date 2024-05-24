@@ -134,10 +134,11 @@ async def repeat_word(event: types.CallbackQuery, user: models.User):
 
         text = message_helpers.MessageTemplates.get_from_learned(word_and_translation)
 
-        await message_helpers.delete_and_send_message(
-            message=event.message, text=text, reply_markup=kb, user=user
+        await message_helpers.send_message(
+            text=text, reply_markup=kb, event=event, user=user, delete_prev_message=True,
         )
         return
+
     keyboard_data = [
         (Button.NEXT_WORD, Callback.NEXT_WORD),
     ]

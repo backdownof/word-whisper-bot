@@ -9,7 +9,17 @@ from aiogram import types
 from sqlalchemy import select
 
 
-async def send_message(text, reply_markup=None, event=None, user: models.User = None):
+async def send_message(
+        text,
+        reply_markup=None,
+        event=None,
+        user: models.User = None,
+        delete_prev_message:bool = False):
+    if delete_prev_message:
+        if event.message.date > (datetime.now(timezone.utc) - timedelta(hours=48)):
+            await event.message.delete()
+            event = None
+  
     if not event and user:
         await App.bot().send_message(
             text=text,
@@ -30,14 +40,6 @@ async def send_message(text, reply_markup=None, event=None, user: models.User = 
 
     await event.answer(text, reply_markup=reply_markup, parse_mode='HTML')
 
-async def delete_and_send_message(
-    message=None, text=None, reply_markup=None, user: models.User = None
-):
-    if message.date > (datetime.now(timezone.utc) - timedelta(hours=48)):
-        await message.delete()
-    await App.bot().send_message(
-        text=text, chat_id=user.tg_id, reply_markup=reply_markup, parse_mode="HTML"
-    )
 
 class MessageTemplates:
     def get_new_word_message(word_and_translation: Tuple[models.Word, models.WordTranslation]):
