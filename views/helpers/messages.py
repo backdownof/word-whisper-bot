@@ -1,12 +1,25 @@
+from datetime import timedelta, datetime, timezone
+from random import shuffle
 from typing import List, Tuple
 
 from config import App
 from db import models
 
 from aiogram import types
+from sqlalchemy import select
 
 
-async def send_message(text, reply_markup=None, event=None, user: models.User = None):
+async def send_message(
+        text,
+        reply_markup=None,
+        event=None,
+        user: models.User = None,
+        delete_prev_message:bool = False):
+    if delete_prev_message:
+        if event.message.date > (datetime.now(timezone.utc) - timedelta(hours=48)):
+            await event.message.delete()
+            event = None
+  
     if not event and user:
         await App.bot().send_message(
             text=text,
@@ -57,4 +70,30 @@ class MessageTemplates:
         message = "<b>Ваше слово дня</b>\n\n"
 
         message += MessageTemplates.get_new_word_message(word_and_translation)
+        return message
+    
+    def get_from_learned(word_and_translation):
+        word_and_translation_mixed = [
+            word_and_translation[0].word,
+            word_and_translation[1].translation,
+        ]
+        shuffle(word_and_translation_mixed)
+
+        message = f"<b> Слово:</b> {word_and_translation_mixed[0]}" + "\n"
+        message += (
+            f'<b> Перевод</b> <span class="tg-spoiler">{word_and_translation_mixed[-1]}</span>'
+            + "\n"
+        )
+        
+        word_examples = models.DBSession.scalars(
+            select(models.WordExamples)
+            .where(models.WordExamples.word_id == word_and_translation[0].id)
+            .limit(2)
+        ).all()
+        if word_examples:
+            examples = [
+                f"- {word_example.example_sentece}" for word_example in word_examples
+            ]
+            examples = "\n".join(examples)
+            message += f'<b>Примеры</b>: <span class="tg-spoiler">{examples}</span>'
         return message
